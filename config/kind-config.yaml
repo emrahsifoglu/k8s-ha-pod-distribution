@@ -1,0 +1,45 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: localstack
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+  - role: worker
+    kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        kubeletExtraArgs:
+          system-reserved: memory=512Mi,cpu=500m
+          kube-reserved: memory=512Mi,cpu=500m
+          eviction-hard: memory.available<256Mi
+    labels:
+      topology.kubernetes.io/zone: eu-west-1a
+      node.kubernetes.io/instance-type: t3.small
+  - role: worker
+    kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        kubeletExtraArgs:
+          system-reserved: memory=1Gi,cpu=1000m
+          kube-reserved: memory=1Gi,cpu=1000m
+          eviction-hard: memory.available<512Mi
+    labels:
+      topology.kubernetes.io/zone: eu-west-1b
+      node.kubernetes.io/instance-type: t3.medium
+  - role: worker
+    kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        kubeletExtraArgs:
+          system-reserved: memory=2Gi,cpu=2000m
+          kube-reserved: memory=2Gi,cpu=2000m
+          eviction-hard: memory.available<1Gi
+    labels:
+      topology.kubernetes.io/zone: eu-west-1c
+      node.kubernetes.io/instance-type: t3.large
