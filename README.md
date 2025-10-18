@@ -8,6 +8,8 @@
 * [Deploy Resources](#deploy-resources)
     * [Deploy Nginx](#deploy-nginx)
 * [Test](#test)
+* [Conclusion](#conclusion)
+* [Resources](#-resources)
 
 ## Project Overview
 
@@ -94,7 +96,7 @@ $ tar -xvf kyverno-cli_v1.12.0_linux_x86_64.tar.gz
 $ sudo cp kyverno /usr/local/bin/
 ```
 
-### Deploy Resources
+## Deploy Resources
 
 First we may need wait for all Kyverno pods to be fully initialized and in running state.
 
@@ -135,7 +137,7 @@ $ kyverno apply --resource ./manifests/deploy-nginx.yaml \
 pass: 3, fail: 0, warn: 0, error: 0, skip: 0
 ```
 
-#### Deploy Nginx
+### Deploy Nginx
 
 ```shell
 $ kubectl apply -f ./manifests/deploy-nginx.yaml
@@ -222,3 +224,51 @@ $ curl localhost:30000
 </body>
 </html>
 ```
+---
+
+## Conclusion
+
+This deployment ensures a secure, highly available, and scalable application setup while balancing pods across zones and nodes.
+
+---
+
+## 📚 Resources
+
+☸️ **Kubernetes Core Concepts**
+
+* [Labels, Annotations, and Taints](https://kubernetes.io/docs/reference/labels-annotations-taints/)
+* [Scheduling Configuration](https://kubernetes.io/docs/reference/scheduling/config/)
+* [Multiple Zones Best Practices](https://kubernetes.io/docs/setup/best-practices/multiple-zones/)
+* [Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
+* [Pod Disruption Budget (PDB)](https://medium.com/@muppedaanvesh/a-hand-on-guide-to-kubernetes-pod-disruption-budget-pdb-%EF%B8%8F-ebe3155a4b7c)
+* [Volumes and Storage](https://kubernetes.io/docs/concepts/storage/volumes/)
+
+⚙️ **Cluster Configuration and Setup**
+
+* [Name Your KIND Cluster](https://kind.sigs.k8s.io/docs/user/configuration/#name-your-cluster)
+* [Even Pod Distribution Across Nodes](https://cloudhero.io/kubernetes-evenly-distribution-of-pods-across-cluster-nodes/)
+* [Setting Up Multi-Node Cluster with KIND (Medium)](https://medium.com/@subhampradhan966/setting-up-a-multi-node-kubernetes-cluster-with-kind-a-comprehensive-guide-146ee5994226)
+* [Setting Up Cluster with KIND (Dev.to)](https://dev.to/isaackumi/setting-up-a-single-or-multi-node-cluster-on-kindo-6o2)
+* [Simplifying Deployments with Kustomize](https://deniz-turkmen.medium.com/simplifying-kubernetes-deployments-with-kustomize-52a2daa6145c)
+
+🚀 **Deployment and Nginx Customization**
+
+* [Change `index.html` in Nginx Deployment (Stack Overflow)](https://stackoverflow.com/questions/49904784/change-index-html-nginx-kubernetes-deployment)
+* [Custom HTML on Nginx Pod via ConfigMap (Tim Krassowski)](https://medium.com/@tim.krassowski/kubernetes-deployment-that-uses-a-custom-index-html-file-on-an-nginx-pod-using-a-configmap-1ee22070897e)
+* [Deploy Pods with Custom HTML (Janita GW)](https://medium.com/@janita.gw13/how-to-deploy-kubernetes-pods-with-a-custom-html-on-a-nginx-web-server-cafdd9e965f)
+* [Unix `sed` Command with Variables](https://unix.stackexchange.com/questions/646851/struggling-using-sed-command-with-variables)
+* [YouTube: Kubernetes Deployment Guide](https://www.youtube.com/watch?v=MxGAuVsJBXE)
+
+🛡️ **Kyverno Policies and Testing**
+
+* [Kyverno Policy: Require Deployments Have Multiple Replicas](https://kyverno.io/policies/other/require-deployments-have-multiple-replicas/require-deployments-have-multiple-replicas/)
+* [Kyverno CLI Usage and Testing](https://kyverno.io/docs/kyverno-cli/usage/test/)
+* [Kyverno GitHub Issue #8589](https://github.com/kyverno/kyverno/issues/8589)
+* [Security Considerations for Kyverno](https://security.theodo.com/en/blog/security-kyverno-kubernetes)
+
+🧩 **Webhooks and Admission Controllers**
+
+* [Kubernetes Admission Controllers](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
+* [What Is a Mutating Webhook (Medium)](https://mycloudjourney.medium.com/what-is-mutatingwebhook-in-kubernetes-a62f79598ecb)
+* [SlackHQ: Simple Kubernetes Webhook (GitHub)](https://github.com/slackhq/simple-kubernetes-webhook/tree/main)
+* [Slack Engineering: Webhook Deep Dive](https://slack.engineering/simple-kubernetes-webhook/)
