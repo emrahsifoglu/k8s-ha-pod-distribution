@@ -1,0 +1,33 @@
+---
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: kyverno-test
+policies:
+  - ../manifests/add-node-affinity.yaml
+  - ../manifests/add-pod-affinity.yaml
+  - ../manifests/add-topology-spread.yaml
+resources:
+  - test-resources.yaml
+results:
+  - policy: add-node-affinity
+    isValidatingAdmissionPolicy: false
+    rule: add-node-affinity-to-deployments
+    resource: test-deploy
+    kind: Deployment
+    patchedResource: test-merged-node-affinity.yaml
+    result: pass
+  - policy: add-pod-affinity
+    isValidatingAdmissionPolicy: false
+    rule: add-pod-affinity-to-deployments
+    resource: test-deploy
+    kind: Deployment
+    patchedResource: test-merged-pod-affinity.yaml
+    result: pass
+  - policy: add-topology-spread
+    isValidatingAdmissionPolicy: false
+    rule: add-topology-spread-to-deployments
+    resource: test-deploy
+    kind: Deployment
+    patchedResource: test-merged-topology-spread.yaml
+    result: pass
