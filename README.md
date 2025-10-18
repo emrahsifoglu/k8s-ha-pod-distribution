@@ -7,6 +7,7 @@
     * [Install CLIs](#install-clis)
 * [Deploy Resources](#deploy-resources)
     * [Deploy Nginx](#deploy-nginx)
+* [Test](#test)
 
 ## Project Overview
 
@@ -176,3 +177,48 @@ nginx-deploy-5c4bbb658c-rgdq2   1/1     Running   0          20m   10.244.2.8   
 nginx-deploy-5c4bbb658c-smdpr   1/1     Running   0          20m   10.244.2.9   localstack-worker
 ```
 
+## Test
+
+**Check desired results**
+
+You can test a given set of resources against one or more policies by running ```test``` command.
+
+```shell
+$ kyverno test tests
+
+Loading test  ( tests/kyverno-test.yaml ) ...
+  Loading values/variables ...
+  Loading policies ...
+  Loading resources ...
+  Loading exceptions ...
+  Applying 3 policies to 1 resource ...
+  Checking results ...
+
+│────│─────────────────────│────────────────────────────────────│────────────────────────│────────│────────│
+│ ID │ POLICY              │ RULE                               │ RESOURCE               │ RESULT │ REASON │
+│────│─────────────────────│────────────────────────────────────│────────────────────────│────────│────────│
+│ 1  │ add-node-affinity   │ add-node-affinity-to-deployments   │ Deployment/test-deploy │ Pass   │ Ok     │
+│ 2  │ add-pod-affinity    │ add-pod-affinity-to-deployments    │ Deployment/test-deploy │ Pass   │ Ok     │
+│ 3  │ add-topology-spread │ add-topology-spread-to-deployments │ Deployment/test-deploy │ Pass   │ Ok     │
+│────│─────────────────────│────────────────────────────────────│────────────────────────│────────│────────│
+
+
+Test Summary: 3 tests passed and 0 tests failed
+```
+
+**Test load distribution**
+
+You may notice that the pod name in the response changes over time when making repeated curl requests. 
+This indicates that responses are being served by different pods.
+
+```shell
+$ curl localhost:30000
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Welcome to Pod!</h1>
+  <h1>This web page is housed on a Pod running Nginx</h1>
+  <p>This response is from pod:nginx-deploy-5c4bbb658c-smdpr</p>
+</body>
+</html>
+```
