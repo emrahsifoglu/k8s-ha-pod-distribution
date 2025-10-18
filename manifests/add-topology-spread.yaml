@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-topology-spread
+spec:
+  background: true
+  rules:
+    - name: add-topology-spread-to-deployments
+      match:
+        resources:
+          kinds:
+            - Deployment
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                topologySpreadConstraints:
+                - maxSkew: 1
+                  topologyKey: topology.kubernetes.io/zone
+                  whenUnsatisfiable: DoNotSchedule
+                  labelSelector:
+                    matchLabels: "{{request.object.spec.selector.matchLabels}}"
+                - maxSkew: 1
+                  topologyKey: kubernetes.io/hostname
+                  whenUnsatisfiable: DoNotSchedule
+                  labelSelector:
+                    matchLabels: "{{request.object.spec.selector.matchLabels}}"
