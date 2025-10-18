@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-pod-affinity
+spec:
+  background: true
+  rules:
+    - name: add-pod-affinity-to-deployments
+      match:
+        resources:
+          kinds:
+            - Deployment
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                affinity:
+                  podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                    - weight: 100
+                      podAffinityTerm:
+                        labelSelector:
+                          matchLabels: "{{request.object.spec.selector.matchLabels}}"
+                        topologyKey: kubernetes.io/hostname
+                    - weight: 50
+                      podAffinityTerm:
+                        labelSelector:
+                          matchLabels: "{{request.object.spec.selector.matchLabels}}"
+                        topologyKey: topology.kubernetes.io/zone

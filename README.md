@@ -1,10 +1,12 @@
 # Highly Available Pod Distribution in Kubernetes
 
-1.  [Project Overview](#project-overview)
-2.  [Prerequisite](#prerequisite)
-3.  [Local Setup](#local-setup)
-      * [Create a KIND Cluster on Local](#create-a-kind-cluster-on-local)
-      * [Install CLIs](#install-clis)
+* [Project Overview](#project-overview)
+* [Prerequisite](#prerequisite)
+* [Local Setup](#local-setup)
+    * [Create a KIND Cluster on Local](#create-a-kind-cluster-on-local)
+    * [Install CLIs](#install-clis)
+* [Deploy Resources](#deploy-resources)
+    * [Deploy Nginx](#deploy-nginx)
 
 ## Project Overview
 
@@ -27,7 +29,7 @@ KIND cluster running on local simulates optimal pod distribution across AWS avai
 ### Create a KIND Cluster on Local
 
 ```shell
-$ cd rossum-assignment
+$ cd k8s-ha-pod-distribution
 $ kind create cluster --config ./config/kind-config.yaml
 Creating cluster "localstack" ...
  ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
@@ -90,3 +92,87 @@ $ curl -LO https://github.com/kyverno/kyverno/releases/download/v1.12.0/kyverno-
 $ tar -xvf kyverno-cli_v1.12.0_linux_x86_64.tar.gz
 $ sudo cp kyverno /usr/local/bin/
 ```
+
+### Deploy Resources
+
+First we may need wait for all Kyverno pods to be fully initialized and in running state.
+
+```shell
+$ kubectl get po -n kyverno --watch
+NAME                                             READY   STATUS    RESTARTS   AGE
+kyverno-admission-controller-768cff6447-xj4p9    1/1     Running   0          37s
+kyverno-background-controller-849858b7fb-tzm2g   1/1     Running   0          37s
+kyverno-cleanup-controller-56fc6c64c-5rgnc       1/1     Running   0          37s
+kyverno-reports-controller-645c564d7-99dqx       1/1     Running   0          37s
+```
+
+Then we run the command below to create the Kubernetes resources: Pod Disruption Budget and Kyverno policies.
+
+```shell
+$ kubectl create -k ./manifests/
+poddisruptionbudget.policy/pdb created
+clusterpolicy.kyverno.io/add-node-affinity created
+clusterpolicy.kyverno.io/add-pod-affinity created
+clusterpolicy.kyverno.io/add-topology-spread created
+```
+
+**Determine a policy’s effectiveness**
+
+Prior to committing to a cluster, we can use ```apply``` command dry-run policies.
+
+```shell
+$ kyverno apply --resource ./manifests/deploy-nginx.yaml \
+./manifests/add-node-affinity.yaml \
+./manifests/add-pod-affinity.yaml \
+./manifests/add-topology-spread.yaml
+
+.
+.
+.
+---
+
+pass: 3, fail: 0, warn: 0, error: 0, skip: 0
+```
+
+#### Deploy Nginx
+
+```shell
+$ kubectl apply -f ./manifests/deploy-nginx.yaml
+namespace/dev created
+configmap/nginx-configmap created
+deployment.apps/nginx-deploy created
+service/nginx-svc created
+```
+
+```shell
+$ kubectl get deploy nginx-deploy -n dev --watch 
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deploy   4/6     6            4           58s
+nginx-deploy   5/6     6            5           61s
+nginx-deploy   6/6     6            6           65s
+```
+
+**Verify policy application**
+
+```shell
+$ kubectl get deploy nginx-deploy -n dev -oyaml | grep -E "topologySpreadConstraints|Affinity"
+        nodeAffinity:
+        podAntiAffinity:
+          - podAffinityTerm:
+          - podAffinityTerm:
+      topologySpreadConstraints:
+```
+
+This labeling strategy ensures nginx pods are scheduled only on the labeled worker nodes.
+
+```shell
+$ kubectl get po -n dev -owide
+NAME                            READY   STATUS    RESTARTS   AGE   IP           NODE
+nginx-deploy-5c4bbb658c-4xcjt   1/1     Running   0          20m   10.244.3.8   localstack-worker2
+nginx-deploy-5c4bbb658c-66lgj   1/1     Running   0          20m   10.244.1.7   localstack-worker3
+nginx-deploy-5c4bbb658c-6jj8h   1/1     Running   0          20m   10.244.3.7   localstack-worker2
+nginx-deploy-5c4bbb658c-9ms2t   1/1     Running   0          20m   10.244.1.8   localstack-worker3
+nginx-deploy-5c4bbb658c-rgdq2   1/1     Running   0          20m   10.244.2.8   localstack-worker
+nginx-deploy-5c4bbb658c-smdpr   1/1     Running   0          20m   10.244.2.9   localstack-worker
+```
+

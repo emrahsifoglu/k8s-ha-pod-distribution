@@ -1,0 +1,36 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-node-affinity
+spec:
+  background: true
+  rules:
+    - name: add-node-affinity-to-deployments
+      match:
+        resources:
+          kinds:
+            - Deployment
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                      - matchExpressions:
+                        - key: node-role.kubernetes.io/control-plane
+                          operator: DoesNotExist
+                        - key: topology.kubernetes.io/zone
+                          operator: In
+                          values:
+                          - eu-west-1a
+                          - eu-west-1b
+                          - eu-west-1c
+                        - key: node.kubernetes.io/instance-type
+                          operator: In
+                          values:
+                          - t3.small
+                          - t3.medium
+                          - t3.large
